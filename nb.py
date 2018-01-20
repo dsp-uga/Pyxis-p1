@@ -43,14 +43,20 @@ def word_count_test(text):
     map(lambda x: [i.lower() for i in x if i.isalpha() and i not in swlist.value and len(i) > 1])#.flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)
 
 def add_missing(cat, all_dict):
+    '''
+    Not every document (or every type of document) has every word in the vocab. So we need to add the word that are missing and put 0 count for them.
+    '''
     cat = cat.flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)#.mapValues(list)#.map(lambda x: x[1]).reduceByKey(add)
     missing = all_dict.subtractByKey(cat).map(lambda x: (x[0], 0)) #add 0 counts into dataset
     cat = cat.union(missing).map(lambda x: (x[0], x[1])) # add one to avoid 0
     return cat
 
 def get_prob(x):
+    '''
+    Get conditional probabilities for each word in a category. Add one to avoid 0.
+    '''
     x_count = x.count()
-    x = add_missing(x, all_count).map(lambda x: (x[0], (x[1] + 1) / (x_count + TOTAL_WORD.value))) #.sortBy(lambda x: -x[1])
+    x = add_missing(x, all_count).map(lambda x: (x[0], (x[1] + 1) / (x_count + TOTAL_WORD.value)))
     return x
 
 
@@ -87,43 +93,35 @@ if __name__ == "__main__":
     all_label = all_label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], x[1]/LABEL_COUNT.value))
     prior_prob = all_label.collectAsMap()  #return a dict of label and its prior probability
 
-    print (prior_prob)
+    prior_values = np.array([prior_prob['CCAT'], prior_prob['ECAT'], prior_prob['GCAT'], prior_prob['MCAT']], dtype='float128')  #make sure the order of the dict is correct.
 
-    prior_values = np.array([prior_prob['CCAT'], prior_prob['ECAT'], prior_prob['GCAT'], prior_prob['MCAT']], dtype='float128')  #make sure the order is correct. Dict does weird things
 
-    print (prior_values)
+    all_count = word_count_all(all_text) # Count all the words
+    TOTAL_WORD = spark.sparkContext.broadcast(all_count.map(lambda x: x[0]).count()) #broadcast the total word count value
 
     ccat = word_count_cat('CCAT', all_text)
     ecat = word_count_cat('ECAT', all_text)
     gcat = word_count_cat('GCAT', all_text)
     mcat = word_count_cat('MCAT', all_text)
 
-    all_count = word_count_all(all_text)
-    TOTAL_WORD = spark.sparkContext.broadcast(all_count.map(lambda x: x[0]).count())
 
+    # get the probabilities for each category
     ccat = get_prob(ccat)
     ecat = get_prob(ecat)
     gcat = get_prob(gcat)
     mcat = get_prob(mcat)
 
-    # print (ccat.collect())
-    # print (ecat.collect())
+    total_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
 
-    total_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)
-
-    # print (total_prob.collectAsMap())
-
+    #put the result into a dictionary. Key is each word and the value is 4-place tuple (which gives the conditional probability of a word given a category).
     total_prob = total_prob.collectAsMap()
 
-    # TESTING
+    # Read the test file and get the results
     test_path = os.path.join(script_dir, 'X_test_small.txt')
     test_text = spark.sparkContext.textFile(test_path)
     test_text = word_count_test(test_text)
     test_prob = test_text.map(lambda x: [total_prob[i] for i in x if i in total_prob])
-    # print (test_text.collect())
-    # print (test_prob.collect())
-    # test_cal = np.zeros_like(test_cal.collect())
-    # print (test_cal)
+
 
     test_prob = np.array(test_prob.collect())
     test_prob = np.array([reduce(lambda x, y: x * y, np.array(i, dtype = 'float128')) for i in test_prob]) # calculate the prob for each doc given words in each doc
@@ -131,10 +129,8 @@ if __name__ == "__main__":
     maxidx = np.argmax(test_prob, axis = 1) # find the maximum idx number
     cat_dict = {0: 'CCAT', 1: 'ECAT', 2: 'GCAT', 3: 'MCAT'} # hand-code dict type. The order is based on the order of union operations earlier
     res = [cat_dict[i] for i in maxidx]
-    # print (test_prob)
-    # print (maxidx)
+
     print (res)
-    # print (prior_values)
 
 
     # Testing
