@@ -1,8 +1,6 @@
 from __future__ import print_function, division
 import numpy as np
 import pandas as pd
-# import re
-
 from operator import add
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
@@ -26,21 +24,21 @@ def word_count_cat(cat_name, rdd):
     Return a rdd with all lower case letter and remove the quotation sign (we can remove more stopwords later. Just change the 'quot' into sw list).
     '''
     return rdd.filter(lambda x: x[1] == cat_name).map(lambda x: x[0]).\
-    map(lambda x: re.findall('\w+', x)).map(lambda x: [i.lower() for i in x if i not in swlist.value and len(i) > 1])
+    map(lambda x: re.findall('\w+', x)).map(lambda x: [i.lower() for i in x if i.isalpha() and i not in swlist.value and len(i) > 1])
 
 def word_count_all(text):
     '''
     Return word counts of all words
     '''
     return text.map(lambda x: x[0]).map(lambda x: re.findall('\w+', x)).\
-    map(lambda x: [i.lower() for i in x if i not in swlist.value and len(i) > 1]).flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)
+    map(lambda x: [i.lower() for i in x if i.isalpha() and i not in swlist.value and len(i) > 1]).flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)
 
 def word_count_test(text):
     '''
     Return word counts of all words
     '''
     return text.map(lambda x: re.findall('\w+', x)).\
-    map(lambda x: [i.lower() for i in x if i not in swlist.value and len(i) > 1])#.flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)
+    map(lambda x: [i.lower() for i in x if i.isalpha() and i not in swlist.value and len(i) > 1])#.flatMap(lambda x: ([v, 1] for v in x)).reduceByKey(add)
 
 def add_missing(cat, all_dict):
     '''
@@ -70,8 +68,8 @@ if __name__ == "__main__":
 
     # Read in the training files
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    text_path = os.path.join(script_dir, 'X_train_small.txt')
-    label_path = os.path.join(script_dir, 'y_train_small.txt')
+    text_path = os.path.join(script_dir, 'X_train_large.txt')
+    label_path = os.path.join(script_dir, 'y_train_large.txt')
 
     sw_path = os.path.join(script_dir, 'stopwords.txt')
     sw = spark.sparkContext.textFile(sw_path)
@@ -98,7 +96,7 @@ if __name__ == "__main__":
     all_count = word_count_all(all_text) # Count all the words
 
 
-    test_path = os.path.join(script_dir, 'X_test_large.txt')
+    test_path = os.path.join(script_dir, 'X_test_small.txt')
     test_text = spark.sparkContext.textFile(test_path)
     test_text = word_count_test(test_text)
     super_vocab = test_text.flatMap(lambda x: ([v, 1] for v in x)).union(all_count).reduceByKey(add) #super_vocab is the vocab in both training and testing
@@ -143,21 +141,21 @@ if __name__ == "__main__":
     res = [cat_dict[i] for i in maxidx]
 
     # Testing
-    test_res_path = os.path.join(script_dir, 'y_test_large.txt')
+    test_res_path = os.path.join(script_dir, 'y_test_small.txt')
 
-    with open(test_res_path, 'w') as writefile:
-        writefile.write('\n'.join(res))
+    # with open(test_res_path, 'w') as writefile:
+    #     writefile.write('\n'.join(res))
 
 
-    # For comparing results
-    # with open(test_res_path, 'r') as readFile:
-    #     res_label = readFile.read()
-    # res_label = res_label.splitlines()
-    # accu = 0
-    # for i, v in enumerate(res):
-    #     if v in res_label[i]:
-    #        accu += 1
-    # print (accu/len(res))
-#
-
-    #Todo -- change all num into "NUM"
+    #For comparing results
+    with open(test_res_path, 'r') as readFile:
+        res_label = readFile.read()
+    res_label = res_label.splitlines()
+    accu = 0
+    for i, v in enumerate(res):
+        if v in res_label[i]:
+           accu += 1
+    print (accu/len(res))
+    #
+    #
+    # Todo -- change all num into "NUM"
