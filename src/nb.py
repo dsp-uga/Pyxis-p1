@@ -70,11 +70,10 @@ if __name__ == "__main__":
 
 
     # Read in the training files
-    script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    text_path = os.path.join(script_dir, 'X_train_large.txt')
-    label_path = os.path.join(script_dir, 'y_train_large.txt')
+    text_path = 'gs://uga-dsp/project1/train/X_train_vsmall.txt'
+    label_path = 'gs://uga-dsp/project1/train/y_train_vsmall.txt'
 
-    sw_path = os.path.join(script_dir, 'stopwords.txt')
+    sw_path = 'gs://pyxis-p1/stopwords.txt'
     sw = spark.sparkContext.textFile(sw_path)
     swlist = spark.sparkContext.broadcast(sw.collect())
 
@@ -117,7 +116,7 @@ if __name__ == "__main__":
     total_prob = total_prob.collectAsMap()
 
     # Read the test file and get the results
-    test_path = os.path.join(script_dir, 'X_test_large.txt')
+    test_path = 'gs://uga-dsp/project1/test/X_test_vsmall.txt'
     test_text = spark.sparkContext.textFile(test_path)
     test_text = word_count_test(test_text)
     test_prob = test_text.map(lambda x: [total_prob[i] for i in x if i in total_prob])
@@ -133,18 +132,9 @@ if __name__ == "__main__":
     # print (res)
 
 
-    # Testing
-    test_res_path = os.path.join(script_dir, 'y_test_large.txt')
+    # Writing test results to file
+    test_res_path = 'gs://pyxis-p1/vsmall_test_results.txt'
 
-    with open(test_res_path, 'w') as file:      
-        file.write("\n".join(res).lower())
+    res = spark.sparkContext.parallelize(res).coalesce(1)
 
-    # label = label.splitlines()
-    # accu = 0
-    # for i, v in enumerate(res):
-    #     if v in label[i]:
-    #         accu += 1
-    # print (accu/len(res))
-
-
-    ##Todo -- change all num into "NUM"
+    res.saveAsTextFile(test_res_path)
