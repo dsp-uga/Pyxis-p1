@@ -12,8 +12,7 @@ parser = ArgumentParser()
 parser.add_argument("-x", "--x", dest="x_train", help="Give the path for x_train.")
 parser.add_argument("-y", "--y", dest="y_train", help="Give the path for y_train.")
 parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.")
-parser.add_argument("-ytest", "--ytest", dest="y_test", help="Give the path for y_test.")
-parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.")
+parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: None]")
 parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.")
 #parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.")
 args = parser.parse_args()
@@ -59,42 +58,30 @@ def NotStopWords(line, stopwordsList):
     return new_line
 
 
+#make all words lowercase
+#remove everything in words except alphabets
+#remove words with the length less than minimum length
+#remove words appear in stopwords
+def X_Preprocessing( text, minimum_length ):
+    return text.map( lambda line : line.split(" "))\
+    .map(lambda line: [word.lower() for word in line])\
+    .map(lambda line: RemoveEcxeptAlphabets(line))\
+    .map(lambda line: MinimumLength(line, minimum_length))\
+    .map(lambda line: NotStopWords(line, stopwords))    
+
+#remove those labels are not ending with "CAT"
+def y_Preprocessing(labels):
+    return labels.map( lambda label : label.split(",") )\
+    .map(lambda label : [lb for lb in label if lb[-3:]=='CAT'])
+
 
 
 
 #pre-processing x-train
-text = x_train.map( lambda line : line.split(" "))\
-.map(lambda line: [word.lower() for word in line])\
-.map(lambda line: AllAlpha(line))\
-.map(lambda line: RemoveEcxeptAlphabets(line))\
-.map(lambda line: MinimumLength(line, 2))\
-.map(lambda line: NotStopWords(line, stopwords))
-
-
+text = X_Preprocessing(x_train, min_word_length)
 
 #pre-processing x-test
-test_text = x_test.map( lambda line : line.split(" "))\
-.map(lambda line: [word.lower() for word in line])\
-.map(lambda line: AllAlpha(line))\
-
-#pre-processing x-test
-test_text = x_test.map( lambda line : line.split(" "))\
-.map(lambda line: [word.lower() for word in line])\
-.map(lambda line: RemoveEcxeptAlphabets(line))\
-.map(lambda line: MinimumLength(line, 2))\
-.map(lambda line: NotStopWords(line, stopwords))
-
-
-
+test_text = X_Preprocessing(x_test, min_word_length)
 
 #pre-processing y-train
-labels = y_train.map( lambda label : label.split(",") )
-labels = labels.map(lambda label : [lb for lb in label if lb[-3:]=='CAT'])
-
-
-
-
-#pre-processing y-test
-test_labels = y_test.map( lambda label : label.split(",") )
-test_labels = test_labels.map(lambda label : [lb for lb in label if lb[-3:]=='CAT'])
-
+labels = y_Preprocessing(y_train)
