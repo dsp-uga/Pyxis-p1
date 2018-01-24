@@ -48,12 +48,12 @@ def get_prob(x, cat_count):
 
 def get_total_word_prob(cat1, cat2, cat3, cat4):
     '''
-    For each word, return the conditional probability of being each category of document.
+    For each word, return the conditional probability of being each category of document. Each cat is a RDD
     '''
-    ccat = get_prob(cat1, CCAT_COUNT.value)
-    ecat = get_prob(cat2, ECAT_COUNT.value)
-    gcat = get_prob(cat3, GCAT_COUNT.value)
-    mcat = get_prob(cat4, MCAT_COUNT.value)
+    ccat = get_prob(cat1, cat1.count())
+    ecat = get_prob(cat2, cat2.count())
+    gcat = get_prob(cat3, cat3.count())
+    mcat = get_prob(cat4, cat4.count())
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
     total_word_prob = total_prob.map(lambda x: (x[0], [math.log(i) for i in x[1]]))
     return total_word_prob
@@ -83,11 +83,6 @@ ccat = word_count_cat('CCAT', preprocessed_text)
 ecat = word_count_cat('ECAT', preprocessed_text)
 gcat = word_count_cat('GCAT', preprocessed_text)
 mcat = word_count_cat('MCAT', preprocessed_text)
-
-CCAT_COUNT = spark.sparkContext.broadcast(ccat.count())
-ECAT_COUNT = spark.sparkContext.broadcast(ecat.count())
-GCAT_COUNT = spark.sparkContext.broadcast(gcat.count())
-MCAT_COUNT = spark.sparkContext.broadcast(mcat.count())
 
 TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat)
 
