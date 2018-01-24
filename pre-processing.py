@@ -4,6 +4,10 @@ import glob
 import os
 from argparse import ArgumentParser
 from pyspark import SparkContext
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> pre-processing
 
 sc = SparkContext.getOrCreate()
 
@@ -31,11 +35,20 @@ for line in text_file.readlines():
 stopwords_rdd = sc.broadcast(stopwords)
 
 #ignore everything except alphabet
+<<<<<<< HEAD
 def AllAlpha(line):
     new_line = []
     for word in line:
         if word.isalpha():
             new_line.append(word)
+=======
+def RemoveEcxeptAlphabets(line):
+    regex = re.compile('[^a-zA-Z]')
+    new_line = []
+    for word in line:
+        word = regex.sub('', word)
+        new_line.append(word)
+>>>>>>> pre-processing
     return new_line
 
 
@@ -63,13 +76,18 @@ def NotStopWords(line, stopwordsList):
 #pre-processing x-train
 text = x_train.map( lambda line : line.split(" "))\
 .map(lambda line: [word.lower() for word in line])\
+<<<<<<< HEAD
 .map(lambda line: AllAlpha(line))\
+=======
+.map(lambda line: RemoveEcxeptAlphabets(line))\
+>>>>>>> pre-processing
 .map(lambda line: MinimumLength(line, 2))\
 .map(lambda line: NotStopWords(line, stopwords))
 
 
 
 
+<<<<<<< HEAD
 
 
 
@@ -77,6 +95,12 @@ text = x_train.map( lambda line : line.split(" "))\
 test_text = x_test.map( lambda line : line.split(" "))\
 .map(lambda line: [word.lower() for word in line])\
 .map(lambda line: AllAlpha(line))\
+=======
+#pre-processing x-test
+test_text = x_test.map( lambda line : line.split(" "))\
+.map(lambda line: [word.lower() for word in line])\
+.map(lambda line: RemoveEcxeptAlphabets(line))\
+>>>>>>> pre-processing
 .map(lambda line: MinimumLength(line, 2))\
 .map(lambda line: NotStopWords(line, stopwords))
 
