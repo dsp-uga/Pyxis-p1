@@ -9,12 +9,12 @@ import re
 sc = SparkContext.getOrCreate()
 
 parser = ArgumentParser()
-parser.add_argument("-x", "--x", dest="x_train", help="Give the path for x_train.")
-parser.add_argument("-y", "--y", dest="y_train", help="Give the path for y_train.")
-parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.")
-parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: None]")
-parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.")
-#parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.")
+parser.add_argument("-x", "--x", dest="x_train", help="Give the path for x_train.", required = True)
+parser.add_argument("-y", "--y", dest="y_train", help="Give the path for y_train.", required = True)
+parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.", required = True)
+parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: \".\"]", default = None)
+parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.[DEFAULT: 2]", default = 2)
+#parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = ".")
 args = parser.parse_args()
 
 
@@ -24,10 +24,11 @@ y_train = sc.textFile(args.y_train)
 x_test = sc.textFile(args.x_test)
 y_test = sc.textFile(args.y_test)
 
-text_file = open(args.stopwords_path, "r")
 stopwords = []
-for line in text_file.readlines():
-    stopwords.append(line.strip())
+if args.stopwords_path != None:
+    text_file = open(args.stopwords_path, "r")
+    for line in text_file.readlines():
+        stopwords.append(line.strip())
 stopwords_rdd = sc.broadcast(stopwords)
 
 #ignore everything except alphabet
@@ -79,9 +80,7 @@ def y_Preprocessing(labels):
 
 #pre-processing x-train
 text = X_Preprocessing(x_train, min_word_length)
-
 #pre-processing x-test
 test_text = X_Preprocessing(x_test, min_word_length)
-
 #pre-processing y-train
 labels = y_Preprocessing(y_train)
