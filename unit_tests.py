@@ -48,14 +48,14 @@ class PreprocessingMethods(unittest.TestCase):
         sc = SparkContext.getOrCreate()
         rdd = sc.parallelize(["A dedicated &quot;snow desk&quot; has been set up by the New York and New Jersey Port"])
         new_rdd = X_Preprocessing(rdd , 2)
-        result_rdd =  [['dedicated','set','york','jersey','port']]
+        result =  [['dedicated','set','york','jersey','port']]
         self.assertEqual(new_rdd.collect(), result_rdd)
 
     def test_y_Preprocessing(self):
         sc = SparkContext.getOrCreate()
         rdd = sc.parallelize['C11,C24,CCAT,GCAT,GWEA']
         new_rdd = X_Preprocessing(rdd)
-        result_rdd =  [['CCAT', 'GCAT']]
+        result =  [['CCAT', 'GCAT']]
         self.assertEqual(new_rdd.collect(), result_rdd)
         
 
