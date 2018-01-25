@@ -3,6 +3,7 @@
 import pyspark
 import unittest
 from testing import *
+from pre-processing import *
 
 class TestStringMethods(unittest.TestCase):
 
@@ -29,7 +30,34 @@ class TestStringMethods(unittest.TestCase):
 			)
 
 
+class PreprocessingMethods(unittest.TestCase):
+    
+    def test_RemoveEcxeptAlphabets(self):
+        self.assertEqual('a1b,c.d!e?g$h'.upper(), 'ABCDEFGH')
+    
+    def test_MinimumLength(self):
+        new_line = MinimumLength('this is a test to remove word with length less than two', 3)
+        self.assertEqual(new_line, 'this test remove word with length less than two')
+    
+    def test_NotStopWords(self):
+        stopwords_List = ['group', 'I', 'like']
+        result = NotStopWords('I like working in my data science group, it is cool.', stopwords_List)
+        self.assertEqual(result, 'working in my data science, it is cool.')
 
+    def test_X_Preprocessing(self):
+        sc = SparkContext.getOrCreate()
+        rdd = sc.parallelize(["A dedicated &quot;snow desk&quot; has been set up by the New York and New Jersey Port"])
+        new_rdd = X_Preprocessing(rdd , 2)
+        result_rdd =  [['dedicated','set','york','jersey','port']]
+        self.assertEqual(new_rdd.collect(), result_rdd)
+
+    def test_y_Preprocessing(self):
+        sc = SparkContext.getOrCreate()
+        rdd = sc.parallelize['C11,C24,CCAT,GCAT,GWEA']
+        new_rdd = X_Preprocessing(rdd)
+        result_rdd =  [['CCAT', 'GCAT']]
+        self.assertEqual(new_rdd.collect(), result_rdd)
+        
 
 if __name__ == "__main__":
 	sc = pyspark.SparkContext()
