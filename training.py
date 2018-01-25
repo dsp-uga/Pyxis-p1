@@ -77,7 +77,7 @@ if __name__ == '__main__':
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label)
-    TOTAL_VOCAB = get_super_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
+    TOTAL_VOCAB = get_total_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
     TOTAL_VOCAB_COUNT = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
 
 
