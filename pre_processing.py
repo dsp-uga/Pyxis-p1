@@ -33,6 +33,14 @@ if __name__ == "__main__":
             stopwords.append(line.strip())
     stopwords_rdd = sc.broadcast(stopwords)
 
+
+
+    #pre-processing x-train
+    text = X_Preprocessing(x_train, min_word_length)
+    #pre-processing x-test
+    test_text = X_Preprocessing(x_test, min_word_length)
+    #pre-processing y-train
+    labels = y_Preprocessing(y_train)
 #ignore everything except alphabet
 def RemoveEcxeptAlphabets(line):
     regex = re.compile('[^a-zA-Z]')
@@ -76,13 +84,3 @@ def X_Preprocessing( text, minimum_length ):
 def y_Preprocessing(labels):
     return labels.map( lambda label : label.split(",") )\
     .map(lambda label : [lb for lb in label if lb[-3:]=='CAT'])
-
-
-
-
-#pre-processing x-train
-text = X_Preprocessing(x_train, min_word_length)
-#pre-processing x-test
-test_text = X_Preprocessing(x_test, min_word_length)
-#pre-processing y-train
-labels = y_Preprocessing(y_train)
