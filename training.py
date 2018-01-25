@@ -43,7 +43,7 @@ def get_prob(x, cat_count):
     '''
     Get conditional probabilities for each word in a category. Add one to avoid 0.
     '''
-    x = add_missing(x, super_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + TOTAL_VOCAB.value)))   #super_vocab is a global variable
+    x = add_missing(x, TOTAL_VOCAB).map(lambda x: (x[0], (x[1] + 1) / (cat_count + TOTAL_VOCAB_COUNT.value)))   #super_vocab is a global variable
     return x
 
 def get_total_word_prob(cat1, cat2, cat3, cat4):
@@ -77,8 +77,8 @@ if __name__ == '__main__':
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label)
-    total_vocab = get_super_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
-    TOTAL_VOCAB = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
+    TOTAL_VOCAB = get_super_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
+    TOTAL_VOCAB_COUNT = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
 
 
     ccat = word_count_cat('CCAT', preprocessed_text)
