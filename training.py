@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
 
-sc = SparkContext.getOrCreate()
+
 
 def process_label_text(label, text):
     '''
@@ -73,6 +73,7 @@ def word_count_cat(cat_name, rdd):
 
 if __name__ == '__main__':
 
+    # sc = SparkContext.getOrCreate()
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label)
