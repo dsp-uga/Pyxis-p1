@@ -1,9 +1,10 @@
 # This is the unittest file for all our methods in pre-processing, training, and testing.
 import pyspark
 import unittest
+from pre_processing import *
 from training import *
 from testing import *
-# from pre-processing import *
+
 
 class TestStringMethods(unittest.TestCase):
 
@@ -53,10 +54,10 @@ class PreprocessingMethods(unittest.TestCase):
 
     def test_y_Preprocessing(self):
         sc = SparkContext.getOrCreate()
-        rdd = sc.parallelize['C11,C24,CCAT,GCAT,GWEA']
+        rdd = sc.parallelize(['C11,C24,CCAT,GCAT,GWEA'])
         new_rdd = X_Preprocessing(rdd)
         result =  [['CCAT', 'GCAT']]
-        self.assertEqual(new_rdd.collect(), result_rdd)
+        self.assertEqual(new_rdd.collect(), result)
 
 
 class TestTraining(unittest.TestCase):
@@ -74,8 +75,8 @@ class TestTraining(unittest.TestCase):
 	def test_add_missing(self):
 		cat = sc.parallelize([['word1'], ['word1', 'word2'], ['word3']])
 		all_dict = sc.parallelize([['word1', 3], ['word4', 5], ['word2', 2], ['word3', 1]])
-		total_cat = [['word1', 2], ['word2', 1], ['word3', 1], ['word4', 0]]
-		self.assertEqual(add_missing(cat, all_dict), total_cat.collect())
+		total_cat = [('word1', 2), ('word2', 1), ('word3', 1), ('word4', 0)]
+		self.assertEqual(add_missing(cat, all_dict).collect(), total_cat)
 
 
 if __name__ == "__main__":
