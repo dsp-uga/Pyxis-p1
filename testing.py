@@ -1,4 +1,3 @@
-
 # documents before words_to_probs
 # {
 # word1: (p(class1), p(class2), p(class3), p(class4)),  
@@ -54,34 +53,3 @@ def accuracy(predictions, labels):
 def labels_to_indexes(labels):
 	mapping = {'CCAT': 0, 'ECAT': 1, 'GCAT': 2, 'MCAT': 3}
 	return labels.map(lambda label: (label[0], [mapping[x] for x in label[1]] if type(label[1])==tuple else [mapping[label[1]]]))
-
-
-
-
-
-###### testing -- should be moved to unit tests file
-
-import pyspark
-
-sc = pyspark.SparkContext()
-
-docs = sc.parallelize((
-		('doc1',('word1','word2','word3')),
-		('doc2',('word2','word4')),
-		('doc3',('word3'))
-	))
-
-labels = (('doc1',('GCAT', 'MCAT')), ('doc2',('MCAT')), ('doc3',('MCAT')))
-
-prob_dict = {'word1': (1,0,0,0), 'word2': (0,1,1,0), 'word3': (0,0,1,1), 'word4': (0,0,0,1)}
-
-priors_dict = {'CCAT': 1, 'ECAT': 2, 'GCAT': 3, 'MCAT': 4}
-
-
-docs2 = words_to_probs(docs, prob_dict)
-
-docs3 = docs_to_probs(docs2, priors_dict)
-
-preds = class_preds(docs3)
-
-print(accuracy(preds, labels))	
