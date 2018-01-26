@@ -7,7 +7,6 @@ import re
 import math
 
 
-
 def process_label_text(label, text):
     '''
     Process training texts and labels and return word counts. Labels are only with CAT;
@@ -20,8 +19,6 @@ def process_label_text(label, text):
     label = text.map(lambda x: x[1])  #return all label types
     return label, text
     #Count the numbers of total texts and calculate the prior probability of each
-
-
 
 def add_missing(cat, all_dict):
     '''
@@ -42,14 +39,18 @@ def count_label(label, label_count):
 
 def get_prob(x, cat_count, total_v_count, total_vocab):
     '''
-    Get conditional probabilities for each word in a category. Add one to avoid 0.
+    Get conditional probabilities for each word in a category. Add one for smoothing.
+	total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
+	cat_vocab is a RDD like this --- [['word1', 'word2'], ['word2']], which is all words of documents in a category.
+    total_v_count is size (type: number) of the vocabulary (including both training and testing.)
     '''
     x = add_missing(x, total_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + total_v_count)))   #super_vocab is a global variable
     return x
 
 def get_total_word_prob(cat1, cat2, cat3, cat4):
     '''
-    For each word, return the conditional probability of being each category of document. Each cat is a RDD
+    For each word, return the conditional probability of being each category of document. Each cat is a RDD;
+    Four arguments are lists of words_in_a_doc for each category (i.e. each element of the argument is a list with all words with repeat from that category).
     '''
     ccat = get_prob(cat1, cat1.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
     ecat = get_prob(cat2, cat2.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
