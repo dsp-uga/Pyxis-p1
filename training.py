@@ -4,6 +4,7 @@ import os
 from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
+import math
 
 
 
@@ -31,12 +32,12 @@ def add_missing(cat, all_dict):
     cat = cat.union(missing).map(lambda x: (x[0], x[1])) # add one to avoid 0
     return cat
 
-def count_label(label):
+def count_label(label, label_count):
     '''
-    Count the number of the all labels and the prior probability for each category;
+    Count the number of the all labels and the prior probability for each category; label_word_count is the count of all labels.
     Return a RDD with ('CATEGORY_NAME', "LOG_PROB_OF_THE_CATEGORY") tuples as elements.
     '''
-    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/LABEL_COUNT.value)))
+    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/label_count)))
     return all_prior
 
 def get_prob(x, cat_count):
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     # sc = SparkContext.getOrCreate()
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
-    ALL_PRIOR = count_label(all_label)
+    ALL_PRIOR = count_label(all_label, LABEL_COUNT.value)
     TOTAL_VOCAB = get_total_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
     TOTAL_VOCAB_COUNT = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
 
