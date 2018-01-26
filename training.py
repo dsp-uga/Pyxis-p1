@@ -52,10 +52,10 @@ def get_total_word_prob(cat1, cat2, cat3, cat4):
     For each word, return the conditional probability of being each category of document. Each cat is a RDD;
     Four arguments are lists of words_in_a_doc for each category (i.e. each element of the argument is a list with all words with repeat from that category).
     '''
-    ccat = get_prob(cat1, cat1.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
-    ecat = get_prob(cat2, cat2.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
-    gcat = get_prob(cat3, cat3.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
-    mcat = get_prob(cat4, cat4.count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    ccat = get_prob(cat1, cat1.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    ecat = get_prob(cat2, cat2.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    gcat = get_prob(cat3, cat3.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    mcat = get_prob(cat4, cat4.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
     total_word_prob = total_prob.map(lambda x: (x[0], [math.log(i) for i in x[1]]))
     return total_word_prob
