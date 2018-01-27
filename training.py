@@ -4,8 +4,8 @@ import os
 from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
+import math
 
-sc = SparkContext.getOrCreate()
 
 def process_label_text(label, text):
     '''
@@ -20,8 +20,6 @@ def process_label_text(label, text):
     return label, text
     #Count the numbers of total texts and calculate the prior probability of each
 
-
-
 def add_missing(cat, all_dict):
     '''
     Not every document (or every type of document) has every word in the vocab. So we need to add the word that are missing and put 0 count for them.
@@ -31,29 +29,33 @@ def add_missing(cat, all_dict):
     cat = cat.union(missing).map(lambda x: (x[0], x[1])) # add one to avoid 0
     return cat
 
-def count_label(label):
+def count_label(label, label_count):
     '''
-    Count the number of the all labels and the prior probability for each category;
+    Count the number of the all labels and the prior probability for each category; label_word_count is the count of all labels.
     Return a RDD with ('CATEGORY_NAME', "LOG_PROB_OF_THE_CATEGORY") tuples as elements.
     '''
-    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/LABEL_COUNT.value)))
+    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/label_count)))
     return all_prior
 
-def get_prob(x, cat_count):
+def get_prob(x, cat_count, total_v_count, total_vocab):
     '''
-    Get conditional probabilities for each word in a category. Add one to avoid 0.
+    Get conditional probabilities for each word in a category. Add one for smoothing.
+	total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
+	cat_vocab is a RDD like this --- [['word1', 'word2'], ['word2']], which is all words of documents in a category.
+    total_v_count is size (type: number) of the vocabulary (including both training and testing.)
     '''
-    x = add_missing(x, super_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + TOTAL_VOCAB.value)))   #super_vocab is a global variable
+    x = add_missing(x, total_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + total_v_count)))   #super_vocab is a global variable
     return x
 
 def get_total_word_prob(cat1, cat2, cat3, cat4):
     '''
-    For each word, return the conditional probability of being each category of document. Each cat is a RDD
+    For each word, return the conditional probability of being each category of document. Each cat is a RDD;
+    Four arguments are lists of words_in_a_doc for each category (i.e. each element of the argument is a list with all words with repeat from that category).
     '''
-    ccat = get_prob(cat1, cat1.count())
-    ecat = get_prob(cat2, cat2.count())
-    gcat = get_prob(cat3, cat3.count())
-    mcat = get_prob(cat4, cat4.count())
+    ccat = get_prob(cat1, cat1.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    ecat = get_prob(cat2, cat2.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    gcat = get_prob(cat3, cat3.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
+    mcat = get_prob(cat4, cat4.flatMap(lambda x: ([v, 1] for v in x)).count(), TOTAL_VOCAB_COUNT.value, TOTAL_VOCAB)
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
     total_word_prob = total_prob.map(lambda x: (x[0], [math.log(i) for i in x[1]]))
     return total_word_prob
@@ -71,19 +73,21 @@ def word_count_cat(cat_name, rdd):
     '''
     return rdd.filter(lambda x: x[1] == cat_name).map(lambda x: x[0])
 
+if __name__ == '__main__':
 
-all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
-LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
-ALL_PRIOR = count_label(all_label)
-total_vocab = get_super_vocab(test_text,preprocessed_text)#super_vocab is the vocab in both training and testing
-TOTAL_VOCAB = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
+    # sc = SparkContext.getOrCreate()
+    all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
+    LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
+    ALL_PRIOR = count_label(all_label, LABEL_COUNT.value)
+    TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
+    TOTAL_VOCAB_COUNT = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
 
 
-ccat = word_count_cat('CCAT', preprocessed_text)
-ecat = word_count_cat('ECAT', preprocessed_text)
-gcat = word_count_cat('GCAT', preprocessed_text)
-mcat = word_count_cat('MCAT', preprocessed_text)
+    ccat = word_count_cat('CCAT', preprocessed_text)
+    ecat = word_count_cat('ECAT', preprocessed_text)
+    gcat = word_count_cat('GCAT', preprocessed_text)
+    mcat = word_count_cat('MCAT', preprocessed_text)
 
-TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat)
+    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat)
 
 # get the probabilities for each category
