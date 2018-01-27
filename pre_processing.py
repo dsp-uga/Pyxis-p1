@@ -72,12 +72,12 @@ def NotStopWords(line, stopwordsList):
 #remove everything in words except alphabets
 #remove words with the length less than minimum length
 #remove words appear in stopwords
-def X_Preprocessing( text, minimum_length ):
+def X_Preprocessing( text, minimum_length, stopwords_rdd):
     return text.map( lambda line : line.split(" "))\
     .map(lambda line: [word.lower() for word in line])\
     .map(lambda line: RemoveEcxeptAlphabets(line))\
     .map(lambda line: MinimumLength(line, minimum_length))\
-    .map(lambda line: NotStopWords(line, stopwords))
+    .map(lambda line: NotStopWords(line, stopwords_rdd.value))
 
 #remove those labels are not ending with "CAT"
 def y_Preprocessing(labels):

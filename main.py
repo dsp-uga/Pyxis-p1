@@ -30,7 +30,7 @@ if __name__ == "__main__":
     x_train = sc.textFile(args.x_train)
     y_train = sc.textFile(args.y_train)
     x_test = sc.textFile(args.x_test)
-    y_test = sc.textFile(args.y_test)
+    # y_test = sc.textFile(args.y_test)
 
     stopwords = []
     if args.stopwords_path != None:
@@ -42,33 +42,53 @@ if __name__ == "__main__":
 
 
     #pre-processing x-train
-    preprocessed_text = X_Preprocessing(x_train, min_word_length)
+    preprocessed_text = X_Preprocessing(x_train, min_word_length, stopwords_rdd)
     #pre-processing x-test
-    test_text = X_Preprocessing(x_test, min_word_length)
+    test_text = X_Preprocessing(x_test, min_word_length, stopwords_rdd)
     #pre-processing y-train
     preprocessed_label = y_Preprocessing(y_train)
 
     # sc = SparkContext.getOrCreate()
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
-    LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
-    ALL_PRIOR = count_label(all_label, LABEL_COUNT.value).collectAsMap()l
+    LABEL_COUNT = sc.broadcast(len(all_label.collect()))  #broadcast all label counts
+    ALL_PRIOR = count_label(all_label, LABEL_COUNT.value).collectAsMap()
+    # print (len(preprocessed_text.collect()[1]))
     TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
-    TOTAL_VOCAB_COUNT = spark.sparkContext.broadcast(total_vocab.map(lambda x: x[0]).count()) #broadcast the total word count value
+
+    # print (len(total_vocab.collect()))
+    TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
 
 
-    ccat = word_count_cat('CCAT', preprocessed_text)
-    ecat = word_count_cat('ECAT', preprocessed_text)
-    gcat = word_count_cat('GCAT', preprocessed_text)
-    mcat = word_count_cat('MCAT', preprocessed_text)
+    ccat = word_count_cat('CCAT', all_text_label)
+    ecat = word_count_cat('ECAT', all_text_label)
+    gcat = word_count_cat('GCAT', all_text_label)
+    mcat = word_count_cat('MCAT', all_text_label)
+
 
     # create map from words to probabilities
-    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat).collectAsMap()
-
+    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat, TOTAL_VOCAB_COUNT, TOTAL_VOCAB).collectAsMap()
     # replace words in documents with their probabilities
-    document_word_probs = words_to_probs(x_test,TOTAL_WORD_PROB)
+    document_word_probs = words_to_probs(test_text.zipWithIndex().map(lambda x: (x[1], x[0])),TOTAL_WORD_PROB)
+
     # aggregate total probabilities for each document
     document_total_probs = docs_to_probs(document_word_probs, ALL_PRIOR)
+
     # get index of maximum probability (which corresponds to a class)
-    predictions = class_preds(document_total_probs)
+    cat_dict = {0: 'CCAT', 1: 'ECAT', 2: 'GCAT', 3: 'MCAT'}
+    predictions = class_preds(document_total_probs).map(lambda x : cat_dict[x[1]]).collect()
     # compare calculated maximum probability class with actual label to report accuracy
-    print(accuracy(predictions, y_test))
+
+
+    # with open(test_res_path, 'w') as writefile:
+    #     writefile.write('\n'.join(res))
+    #
+    #
+    #For comparing results
+    with open('/Users/yuanmingshi/downloads/prxis-p1/y_test_small.txt', 'r') as readFile:
+        res_label = readFile.read()
+    res_label = res_label.splitlines()
+    accu = 0
+    for i, v in enumerate(predictions):
+        if v in res_label[i]:
+           accu += 1
+    print (accu/len(res_label))

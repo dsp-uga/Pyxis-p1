@@ -1,6 +1,11 @@
-# documents before words_to_probs
+#documents before words_to_probs
 # {
-# word1: (p(class1), p(class2), p(class3), p(class4)),  
+# ('doc1',('word1','word2', ... , 'wordN')
+# }
+
+# prob_dict before words_to_probs
+# {
+# word1: (p(class1), p(class2), p(class3), p(class4)),
 # word2: (p(class1), p(class2), p(class3), p(class4)),
 # ...
 # wordN: (p(class1), p(class2), p(class3), p(class4))
@@ -18,8 +23,8 @@
 def words_to_probs(documents, prob_dict):
 	# convert words to their conditional probabilities for each class
 	return documents.map(lambda doc: (
-				doc[0], 
-				[prob_dict[word] for word in doc[1]] if type(doc[1])==tuple else prob_dict[doc[1]]
+				doc[0],
+				[prob_dict[word] for word in doc[1]] if (type(doc[1])==tuple or type(doc[1])==list) else prob_dict[doc[1]]
 			))
 	# might be possible to optimize the above
 
