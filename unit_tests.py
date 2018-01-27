@@ -7,29 +7,89 @@ from testing import *
 import math
 import numpy as np
 
-class TestStringMethods(unittest.TestCase):
+class TestTestingMethods(unittest.TestCase):
 
 	def test_words_to_probs(self):
-		self.assertEqual(
-				words_to_probs(
-					sc.parallelize((
+
+		documents = sc.parallelize((
 						('doc1',('word1','word2','word3')),
 						('doc2',('word2','word4')),
 						('doc3',('word3'))
-					)),
-					{
+					))
+
+		word_probabilities_dictionary = {
 						'word1': (1,0,0,0),
 						'word2': (0,1,1,0),
 						'word3': (0,0,1,1),
 						'word4': (0,0,0,1)
 					}
-				).collect(),
-				sc.parallelize((
+
+		expected_result = sc.parallelize((
 						('doc1',[(1,0,0,0),(0,1,1,0),(0,0,1,1)]),
 						('doc2',[(0,1,1,0),(0,0,0,1)]),
 						('doc3',(0,0,1,1))
-					)).collect()
+					))
+
+		self.assertEqual(
+				words_to_probs(documents,word_probabilities_dictionary).collect(),
+				expected_result.collect()
 			)
+
+	def test_docs_to_probs(self):
+		documents = sc.parallelize((
+						('doc1',[(1,0,0,0),(0,1,1,0),(0,0,1,1)]),
+						('doc2',[(0,1,1,0),(0,0,0,1)]),
+						('doc3',(0,0,1,1))
+					))
+
+		priors_dictionary = {'CCAT': 1, 'ECAT': 2, 'GCAT': 3, 'MCAT': 4}
+
+		expected_result = sc.parallelize((
+						('doc1',[2,3,5,5]),
+						('doc2',[1,3,4,5]),
+						('doc3',[1,2,4,5])
+					))
+
+		self.assertEqual(
+				docs_to_probs(documents,priors_dictionary).collect(),
+				expected_result.collect()
+			)
+
+	def test_class_preds(self):
+		documents = sc.parallelize((
+						('doc1',[2,3,5,5]),
+						('doc2',[1,7,4,5]),
+						('doc3',[6,2,4,5]),
+						('doc4',[0,0,0,1])
+					))
+
+		expected_result = sc.parallelize((
+						('doc1',2),
+						('doc2',1),
+						('doc3',0),
+						('doc4',3)
+					))
+
+		self.assertEqual(class_preds(documents).collect(), expected_result.collect())
+
+	def test_accuracy(self):
+		predictions = sc.parallelize((
+						('doc1',2),
+						('doc2',1),
+						('doc3',0),
+						('doc4',3)
+					))
+
+		labels = sc.parallelize((
+						('doc1','GCAT'),
+						('doc2','ECAT'),
+						('doc3','CCAT'),
+						('doc4','MCAT')
+					))
+
+		expected_result = 1.0
+
+		self.assertEqual(accuracy(predictions,labels), expected_result)
 
 
 # class PreprocessingMethods(unittest.TestCase):
