@@ -56,12 +56,40 @@ class TestTestingMethods(unittest.TestCase):
 			)
 
 	def test_class_preds(self):
-		# todo
-		self.assertEqual(True, False)
+		documents = sc.parallelize((
+						('doc1',[2,3,5,5]),
+						('doc2',[1,7,4,5]),
+						('doc3',[6,2,4,5]),
+						('doc4',[0,0,0,1])
+					))
+
+		expected_result = sc.parallelize((
+						('doc1',2),
+						('doc2',1),
+						('doc3',0),
+						('doc4',3)
+					))
+
+		self.assertEqual(class_preds(documents).collect(), expected_result.collect())
 
 	def test_accuracy(self):
-		# todo
-		self.assertEqual(True, False)
+		predictions = sc.parallelize((
+						('doc1',2),
+						('doc2',1),
+						('doc3',0),
+						('doc4',3)
+					))
+
+		labels = sc.parallelize((
+						('doc1','GCAT'),
+						('doc2','ECAT'),
+						('doc3','CCAT'),
+						('doc4','MCAT')
+					))
+
+		expected_result = 1.0
+
+		self.assertEqual(accuracy(predictions,labels), expected_result)
 
 
 # class PreprocessingMethods(unittest.TestCase):
