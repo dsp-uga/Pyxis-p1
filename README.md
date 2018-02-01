@@ -18,7 +18,16 @@ This project uses Apache Spark. You'll need to have Spark installed on the targe
 - [Apache Spark](https://spark.apache.org/)
 - [PySpark](https://spark.apache.org/docs/0.9.0/python-programming-guide.html/)
 
+### How to run
+You can use `spark-submit main.py **kwargs` to run the main program and the output should be in the path you specified.
+There are several keyword arguments for the program. They are as follows:
+- `-x`: the path for the x_training file (documents). REQUIRED
+- `-y`: the path for the y_training file (labels). REQUIRED
+- `-xtest`: the path for the x_testing file. (documents) REQUIRED
+- `-st`: the path for the stopword files. OPTIONAL, default value None.
+- `-l`: length of words to throw away. OPTIONAL, default value 2 (i.e. ignore all words with length 2 or less).
 
+If you find any problem, please create a ticket!
 ## Authors (alphabetically sorted)
 - Layton Hayes
 - Parya Jandaghi
