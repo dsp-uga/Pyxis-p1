@@ -5,10 +5,12 @@ import os
 from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
+from nltk.stem.porter import *
 
 
 if __name__ == "__main__":
     sc = SparkContext.getOrCreate()
+    stemmer = PorterStemmer()
 
     parser = ArgumentParser()
     parser.add_argument("-x", "--x", dest="x_train", help="Give the path for x_train.", required = True)
@@ -77,7 +79,8 @@ def X_Preprocessing( text, minimum_length, stopwords_rdd):
     .map(lambda line: [word.lower() for word in line])\
     .map(lambda line: RemoveEcxeptAlphabets(line))\
     .map(lambda line: MinimumLength(line, minimum_length))\
-    .map(lambda line: NotStopWords(line, stopwords_rdd.value))
+    .map(lambda line: NotStopWords(line, stopwords_rdd.value))\
+    .map(lambda line: [stemmer.stem(word) for word in line])
 
 #remove those labels are not ending with "CAT"
 def y_Preprocessing(labels):
