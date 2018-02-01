@@ -37,14 +37,14 @@ def count_label(label, label_count):
     all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/label_count)))
     return all_prior
 
-def get_prob(x, cat_count, t_v_count, total_vocab):
+def get_prob(x, cat_count):
     '''
     Get conditional probabilities for each word in a category. Add one for smoothing.
     cat_count is how many words are in each category
     total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
     t_v_count is size (type: number) of the vocabulary (including both training and testing.)
     '''
-    x = x.map(lambda x: (x[0], (x[1] + 1) / (cat_count + t_v_count)))   #super_vocab is a global variable
+    x = x.map(lambda x: (x[0], (x[1]) / (cat_count)))   #super_vocab is a global variable
     return x
 
 def get_total_word_prob(cat1, cat2, cat3, cat4, t_v_count, total_vocab):
@@ -52,10 +52,10 @@ def get_total_word_prob(cat1, cat2, cat3, cat4, t_v_count, total_vocab):
     For each word, return the conditional probability of being each category of document. Each cat is a RDD;
     Four arguments are lists of words_in_a_doc for each category (i.e. each element of the argument is a list with all words with repeat from that category).
     '''
-    ccat = get_prob(cat1, cat1.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    ecat = get_prob(cat2, cat2.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    gcat = get_prob(cat3, cat3.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    mcat = get_prob(cat4, cat4.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
+    ccat = get_prob(cat1, cat1.flatMap(lambda x: (v for v in x)).reduce(lambda x, y: x[1] + y[1]))
+    ecat = get_prob(cat2, cat2.flatMap(lambda x: (v for v in x)).reduce(lambda x, y: x[1] + y[1]))
+    gcat = get_prob(cat3, cat3.flatMap(lambda x: (v for v in x)).reduce(lambda x, y: x[1] + y[1]))
+    mcat = get_prob(cat4, cat4.flatMap(lambda x: (v for v in x)).reduce(lambda x, y: x[1] + y[1]))
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
     total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) for i in x[1]]))
     return total_word_prob
