@@ -11,7 +11,7 @@ The SPARK_HOME environment variable should be set, and the Spark binaries should
 
 - [Python 3.6](https://www.python.org/)
 - [Apache Spark](https://spark.apache.org/)
-- [PySpark](https://spark.apache.org/docs/0.9.0/python-programming-guide.html/) - Python API for [Apache Spark (https://spark.apache.org/)
+- [PySpark](https://spark.apache.org/docs/0.9.0/python-programming-guide.html/)
 
 
 ## Authors (alphabetically sorted)
