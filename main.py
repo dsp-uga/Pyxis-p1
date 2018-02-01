@@ -49,22 +49,22 @@ if __name__ == "__main__":
     test_text = X_Preprocessing(x_test, min_word_length, stopwords_rdd)
     #pre-processing y-train
     preprocessed_label = y_Preprocessing(y_train)
-
+    tf_idf_text = TF_IDF(preprocessed_text)
     # sc = SparkContext.getOrCreate()
-    all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
+    all_label, all_text_label = process_label_text(preprocessed_label, tf_idf_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = sc.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label, LABEL_COUNT.value).collectAsMap()
     # print (len(preprocessed_text.collect()[1]))
-    TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
+    # TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
 
     # print (len(total_vocab.collect()))
-    TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
+    # TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
 
 
-    ccat = add_missing(word_count_cat('CCAT', all_text_label), TOTAL_VOCAB)   # now return the added vocab of each cat
-    ecat = add_missing(word_count_cat('ECAT', all_text_label), TOTAL_VOCAB)
-    gcat = add_missing(word_count_cat('GCAT', all_text_label), TOTAL_VOCAB)
-    mcat = add_missing(word_count_cat('MCAT', all_text_label), TOTAL_VOCAB)
+    ccat = word_count_cat('CCAT', all_text_label)   # now return the added vocab of each cat
+    ecat = word_count_cat('ECAT', all_text_label)
+    gcat = word_count_cat('GCAT', all_text_label)
+    mcat = word_count_cat('MCAT', all_text_label)
 
 
     # create map from words to probabilities
