@@ -9,6 +9,7 @@ import unittest
 from pre_processing import *
 from training import *
 from testing import *
+from tf_idf import *
 import math
 import numpy as np
 
