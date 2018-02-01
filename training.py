@@ -40,11 +40,11 @@ def count_label(label, label_count):
 def get_prob(x, cat_count, t_v_count, total_vocab):
     '''
     Get conditional probabilities for each word in a category. Add one for smoothing.
-	total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
-	cat_vocab is a RDD like this --- [['word1', 'word2'], ['word2']], which is all words of documents in a category.
-    total_v_count is size (type: number) of the vocabulary (including both training and testing.)
+    cat_count is how many words are in each category
+    total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
+    t_v_count is size (type: number) of the vocabulary (including both training and testing.)
     '''
-    x = add_missing(x, total_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + t_v_count)))   #super_vocab is a global variable
+    x = x.map(lambda x: (x[0], (x[1] + 1) / (cat_count + t_v_count)))   #super_vocab is a global variable
     return x
 
 def get_total_word_prob(cat1, cat2, cat3, cat4, t_v_count, total_vocab):

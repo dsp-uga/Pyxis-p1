@@ -60,10 +60,10 @@ if __name__ == "__main__":
     TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
 
 
-    ccat = word_count_cat('CCAT', all_text_label)
-    ecat = word_count_cat('ECAT', all_text_label)
-    gcat = word_count_cat('GCAT', all_text_label)
-    mcat = word_count_cat('MCAT', all_text_label)
+    ccat = add_missing(word_count_cat('CCAT', all_text_label), TOTAL_VOCAB)   # now return the added vocab of each cat
+    ecat = add_missing(word_count_cat('ECAT', all_text_label), TOTAL_VOCAB)
+    gcat = add_missing(word_count_cat('GCAT', all_text_label), TOTAL_VOCAB)
+    mcat = add_missing(word_count_cat('MCAT', all_text_label), TOTAL_VOCAB)
 
 
     # create map from words to probabilities
