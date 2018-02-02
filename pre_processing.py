@@ -71,7 +71,8 @@ def NotStopWords(line, stopwordsList):
             new_line.append(word)
     return new_line
 
-
+#creates and adds n-grams to each document, with n specifying the degree
+# -- n=2 will add bigrams only, n=3 will add bigrams and trigrams, etc.
 def add_n_grams(n, documents):
     res_rdd = documents
     for i in range(n+1):
@@ -80,6 +81,7 @@ def add_n_grams(n, documents):
         res_rdd = res_rdd.zip(i_grams).map(lambda x: x[0]+x[1]) #add the new grams to res_rdd
     return res_rdd
 
+#helper function for add_n_grams
 def n_grams(n, document):
     words = document
     for i in range(n):
