@@ -52,9 +52,9 @@ if __name__ == "__main__":
     #adding n-grams
     preprocessed_text = add_n_grams(2, preprocessed_text)
     test_text = add_n_grams(2, test_text)
-
+    tf_idf_text = TF_IDF(preprocessed_text)
     # sc = SparkContext.getOrCreate()
-    all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
+    all_label, all_text_label = process_label_text(preprocessed_label, tf_idf_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = sc.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label, LABEL_COUNT.value).collectAsMap()
     # print (len(preprocessed_text.collect()[1]))

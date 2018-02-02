@@ -93,6 +93,7 @@ def n_grams(n, document):
 #remove words with the length less than minimum length
 #remove words appear in stopwords
 def X_Preprocessing( text, minimum_length, stopwords_rdd):
+    stemmer = PorterStemmer()
     return text.map( lambda line : line.split(" "))\
     .map(lambda line: [word.lower() for word in line])\
     .map(lambda line: RemoveEcxeptAlphabets(line))\
