@@ -70,6 +70,24 @@ def NotStopWords(line, stopwordsList):
     return new_line
 
 
+def add_n_grams(n, documents):
+    res_rdd = documents
+    for i in range(n+1):
+        if(i < 2): continue
+        i_grams = documents.map(lambda doc: n_grams(i, doc))
+        res_rdd = res_rdd.zip(i_grams).map(lambda x: x[0]+x[1]) #add the new grams to res_rdd
+    return res_rdd
+
+def n_grams(n, document):
+    words = document
+    for i in range(n):
+        if i==0: continue
+        words = words[:-1]
+        addition = document[i:]
+        words = [x[0]+" "+x[1] for x in zip(words,addition)]
+    return words
+
+
 #make all words lowercase
 #remove everything in words except alphabets
 #remove words with the length less than minimum length

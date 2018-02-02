@@ -43,10 +43,15 @@ if __name__ == "__main__":
 
     #pre-processing x-train
     preprocessed_text = X_Preprocessing(x_train, min_word_length, stopwords_rdd)
+    print(preprocessed_text.take(1))
     #pre-processing x-test
     test_text = X_Preprocessing(x_test, min_word_length, stopwords_rdd)
     #pre-processing y-train
     preprocessed_label = y_Preprocessing(y_train)
+
+    #adding n-grams
+    preprocessed_text = add_n_grams(2, preprocessed_text)
+    test_text = add_n_grams(2, test_text)
 
     # sc = SparkContext.getOrCreate()
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
