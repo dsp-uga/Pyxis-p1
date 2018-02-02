@@ -62,7 +62,7 @@ def get_total_word_prob(cat1, cat2, cat3, cat4):
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).reduceByKey(lambda x, y : np.add(x,y)).mapValues(list)  #union all categories together
     e = sorted(total_word_prob.map(lambda x: (x[0], sum(x[1]))).collect(), key=lambda x: x[1])[0][1]
     print (e)
-    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) if i!= 0 else math.log(e ** 0.95) for i in x[1]]))
+    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) if i!= 0 else math.log(e ** 0.96) for i in x[1]]))
     return total_word_prob
 
 def get_total_vocab(training_text, testing_text):

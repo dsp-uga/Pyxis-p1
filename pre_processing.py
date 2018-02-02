@@ -5,11 +5,8 @@ import os
 from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
-<<<<<<< HEAD
-=======
 from nltk.stem.porter import *
->>>>>>> pre-processing
-
+from nltk.stem.snowball import SnowballStemmer
 
 if __name__ == "__main__":
     sc = SparkContext.getOrCreate()
@@ -78,6 +75,8 @@ def NotStopWords(line, stopwordsList):
 #remove words with the length less than minimum length
 #remove words appear in stopwords
 def X_Preprocessing( text, minimum_length, stopwords_rdd):
+    stemmer = PorterStemmer()
+    # stemmer = SnowballStemmer("english")
     return text.map( lambda line : line.split(" "))\
     .map(lambda line: [word.lower() for word in line])\
     .map(lambda line: RemoveEcxeptAlphabets(line))\

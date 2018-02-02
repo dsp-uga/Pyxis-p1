@@ -12,6 +12,7 @@ from testing import *
 from tf_idf import *
 import math
 import numpy as np
+from nltk.stem.porter import *
 
 
 
