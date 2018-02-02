@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.", required = True)
     parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: \".\"]", default = None)
     parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.[DEFAULT: 2]", default = 2)
-    #parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = ".")
+    parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = "output.txt")
     args = parser.parse_args()
 
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
 
     # create map from words to probabilities
-    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat, TOTAL_VOCAB_COUNT, TOTAL_VOCAB).collectAsMap()
+    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat).collectAsMap()
     # replace words in documents with their probabilities
     document_word_probs = words_to_probs(test_text.zipWithIndex().map(lambda x: (x[1], x[0])),TOTAL_WORD_PROB)
 

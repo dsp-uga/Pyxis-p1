@@ -24,7 +24,7 @@ def words_to_probs(documents, prob_dict):
 	# convert words to their conditional probabilities for each class
 	return documents.map(lambda doc: (
 				doc[0],
-				[prob_dict[word] for word in doc[1]] if (type(doc[1])==tuple or type(doc[1])==list) else prob_dict[doc[1]]
+				[prob_dict[word] for word in doc[1] if word in prob_dict] if (type(doc[1])==tuple or type(doc[1])==list) else prob_dict[doc[1]]
 			))
 	# might be possible to optimize the above
 

@@ -7,6 +7,7 @@ assuming documents takes the form:
 ('word1', 'word2', ... , 'wordN')
 )
 '''
+import math
 
 def unique_words(document):
 	uniques = {}
@@ -37,5 +38,5 @@ def TF_IDF(documents):
 	tf = TF(documents)
 	idf = IDF(documents).collectAsMap()
 	tf_idf = tf.map(lambda x: [(y[0], y[1]*idf[y[0]]) for y in x])
-	tf_idf = tfidf.map(lambda x: [y for y in x if y[1]!=0.0]) #filter out 0 values
+	tf_idf = tf_idf.map(lambda x: [y for y in x if y[1]!=0.0]) #filter out 0 values
 	return tf_idf
