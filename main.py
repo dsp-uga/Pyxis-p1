@@ -33,6 +33,7 @@ if __name__ == "__main__":
     x_train = sc.textFile(args.x_train)
     y_train = sc.textFile(args.y_train)
     x_test = sc.textFile(args.x_test)
+    output_path = os.path.join(args.output_path, 'output.txt')
     # y_test = sc.textFile(args.y_test)
 
     stopwords = []
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 
     #pre-processing x-train
     preprocessed_text = X_Preprocessing(x_train, min_word_length, stopwords_rdd)
-    print(preprocessed_text.take(1))
+    # print(preprocessed_text.take(1))
     #pre-processing x-test
     test_text = X_Preprocessing(x_test, min_word_length, stopwords_rdd)
     #pre-processing y-train
