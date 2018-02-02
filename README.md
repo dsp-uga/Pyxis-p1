@@ -19,6 +19,7 @@ This project uses Apache Spark. You'll need to have Spark installed on the targe
 - [Apache Spark](https://spark.apache.org/)
 - [PySpark](https://spark.apache.org/docs/0.9.0/python-programming-guide.html/)
 - [Numpy](https://docs.scipy.org/doc/numpy-1.13.0/)
+- [NLTK](http://www.nltk.org/)
 
 ### How to run
 To get it running, you can use
@@ -35,6 +36,7 @@ There are several keyword arguments for the program. They are as follows:
 - `-o`: path for the output file `output.txt`. OPTIONAL, default value is the same as the main.py file.
 
 If you find any problem, please create a ticket!
+
 ### Specific features
 Here are some methods that we use in this project:
 - Baseline: Naive Base Model
@@ -45,11 +47,15 @@ Here are some methods that we use in this project:
 - stemming: we use NLTK's porter stemmer (see http://www.nltk.org/howto/stem.html)
 
 ## Contributors (alphabetically sorted)
-- Layton Hayes
-- Parya Jandaghi
-- Jeremy Shi
+- Layton Hayes, Institute of Artificial Intelligence, University of Georgia
+- Parya Jandaghi, Department of Computer Science, University of Georgia
+- Jeremy Shi, Institute of Artificial Intelligence, University of Georgia
 
 See the [contributors](./CONTRIBUTORS.md) file for detailed contributions.
 
 ## License
 MIT
+
+## TODO
+- Tuning the stopword list to improve the accuracy.
+- Improve smoothing in tf-idf. 
