@@ -1,5 +1,6 @@
 # Group Pyxis - Project 1 Scalable Document Classification
-This repository classify documents by using Reuters Corpus, which is a set of news stories with multiple class labels. with Spark's Python API completed for CSCI8360: Data Science Practicum at the University of Georgia. By using Reuters Corpus, which is a set of new stories with multiple class labels. The training data is over 1 gigabyte and the testing data is roughly 117 MB with over 80000 documents/news stories.\\
+This repository classify documents by using Reuters Corpus, which is a set of news stories with multiple class labels. with Spark's Python API completed for CSCI8360: Data Science Practicum at the University of Georgia. By using Reuters Corpus, which is a set of new stories with multiple class labels. The training data is over 1 gigabyte and the testing data is roughly 117 MB with over 80000 documents/news stories.
+
 These different news stories are split into different categories. In this project, we are only focusing on these four labels:
 1. CCAT: Corporate/Industrial
 2. ECAT: Economics
@@ -20,6 +21,7 @@ This project uses Apache Spark. You'll need to have Spark installed on the targe
 - [PySpark](https://spark.apache.org/docs/0.9.0/python-programming-guide.html/)
 - [Numpy](https://docs.scipy.org/doc/numpy-1.13.0/)
 - [NLTK](http://www.nltk.org/)
+- [Google Cloud Platform](https://cloud.google.com)
 
 ### How to run
 To get it running, you can use
@@ -52,10 +54,11 @@ Here are some methods that we use in this project:
 - Jeremy Shi, Institute of Artificial Intelligence, University of Georgia
 
 See the [contributors](./CONTRIBUTORS.md) file for detailed contributions.
+We also thank [Shannon Quinn](http://magsol.github.io/) for helpful instructions.
 
 ## License
 MIT
 
 ## TODO
 - Tuning the stopword list to improve the accuracy.
-- Improve smoothing in tf-idf. 
+- Improve smoothing in tf-idf.
