@@ -1,10 +1,11 @@
 from operator import add
 import glob
-import os
+import os, sys
 from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
 import math
+import numpy as np
 
 
 def process_label_text(label, text):
@@ -34,30 +35,34 @@ def count_label(label, label_count):
     Count the number of the all labels and the prior probability for each category; label_word_count is the count of all labels.
     Return a RDD with ('CATEGORY_NAME', "LOG_PROB_OF_THE_CATEGORY") tuples as elements.
     '''
-    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add).map(lambda x: (x[0], math.log(x[1]/label_count)))
+    print (label_count)
+    all_prior = label.map(lambda x: (x, 1)).reduceByKey(add)
+    print (all_prior.collect())
+    all_prior = all_prior.map(lambda x: (x[0], math.log(x[1]/label_count)))
     return all_prior
 
-def get_prob(x, cat_count, t_v_count, total_vocab):
+def get_prob(x, cat_count):
     '''
     Get conditional probabilities for each word in a category. Add one for smoothing.
-	total_vocab is a RDD like this --- [['word1', 2], ['word2', 3], ['word3', 1]], which is the total counts in both training and testing.
-	cat_vocab is a RDD like this --- [['word1', 'word2'], ['word2']], which is all words of documents in a category.
-    total_v_count is size (type: number) of the vocabulary (including both training and testing.)
+    cat_count is how many words are in each category
     '''
-    x = add_missing(x, total_vocab).map(lambda x: (x[0], (x[1] + 1) / (cat_count + t_v_count)))   #super_vocab is a global variable
+    x = x.flatMap(lambda x: (v for v in x)).reduceByKey(add).map(lambda x: (x[0], (x[1] / cat_count)))
     return x
 
-def get_total_word_prob(cat1, cat2, cat3, cat4, t_v_count, total_vocab):
+def get_total_word_prob(cat1, cat2, cat3, cat4):
     '''
     For each word, return the conditional probability of being each category of document. Each cat is a RDD;
     Four arguments are lists of words_in_a_doc for each category (i.e. each element of the argument is a list with all words with repeat from that category).
     '''
-    ccat = get_prob(cat1, cat1.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    ecat = get_prob(cat2, cat2.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    gcat = get_prob(cat3, cat3.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    mcat = get_prob(cat4, cat4.flatMap(lambda x: ([v, 1] for v in x)).count(), t_v_count.value, total_vocab)
-    total_word_prob = ccat.union(ecat).union(gcat).union(mcat).groupByKey().mapValues(list)  #union all categories together
-    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) for i in x[1]]))
+    # e = sys.float_info.epsilon ** 0.40
+    ccat = get_prob(cat1, cat1.flatMap(lambda x: (v for v in x)).map(lambda x: x[1]).reduce(add)).map(lambda x: (x[0], [x[1], 0, 0, 0]))
+    ecat = get_prob(cat2, cat2.flatMap(lambda x: (v for v in x)).map(lambda x: x[1]).reduce(add)).map(lambda x: (x[0], [0, x[1], 0, 0]))
+    gcat = get_prob(cat3, cat3.flatMap(lambda x: (v for v in x)).map(lambda x: x[1]).reduce(add)).map(lambda x: (x[0], [0, 0, x[1], 0]))
+    mcat = get_prob(cat4, cat4.flatMap(lambda x: (v for v in x)).map(lambda x: x[1]).reduce(add)).map(lambda x: (x[0], [0, 0, 0, x[1]]))
+    total_word_prob = ccat.union(ecat).union(gcat).union(mcat).reduceByKey(lambda x, y : np.add(x,y)).mapValues(list)  #union all categories together
+    e = sorted(total_word_prob.map(lambda x: (x[0], sum(x[1]))).collect(), key=lambda x: x[1])[0][1]
+    print (e)
+    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) if i!= 0 else math.log(e ** 0.96) for i in x[1]]))
     return total_word_prob
 
 def get_total_vocab(training_text, testing_text):

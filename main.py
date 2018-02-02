@@ -9,8 +9,10 @@ import unittest
 from pre_processing import *
 from training import *
 from testing import *
+from tf_idf import *
 import math
 import numpy as np
+from nltk.stem.porter import *
 
 
 
@@ -23,6 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.", required = True)
     parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: \".\"]", default = None)
     parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.[DEFAULT: 2]", default = 2)
+    parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = "output.txt")
     args = parser.parse_args()
 
 
@@ -58,20 +61,20 @@ if __name__ == "__main__":
     LABEL_COUNT = sc.broadcast(len(all_label.collect()))  #broadcast all label counts
     ALL_PRIOR = count_label(all_label, LABEL_COUNT.value).collectAsMap()
     # print (len(preprocessed_text.collect()[1]))
-    TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
+    # TOTAL_VOCAB = get_total_vocab(preprocessed_text, test_text)#super_vocab is the vocab in both training and testing
 
     # print (len(total_vocab.collect()))
-    TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
+    # TOTAL_VOCAB_COUNT = sc.broadcast(TOTAL_VOCAB.count()) #broadcast the total word count value
 
 
-    ccat = word_count_cat('CCAT', all_text_label)
+    ccat = word_count_cat('CCAT', all_text_label)   # now return the added vocab of each cat
     ecat = word_count_cat('ECAT', all_text_label)
     gcat = word_count_cat('GCAT', all_text_label)
     mcat = word_count_cat('MCAT', all_text_label)
 
 
     # create map from words to probabilities
-    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat, TOTAL_VOCAB_COUNT, TOTAL_VOCAB).collectAsMap()
+    TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat).collectAsMap()
     # replace words in documents with their probabilities
     document_word_probs = words_to_probs(test_text.zipWithIndex().map(lambda x: (x[1], x[0])),TOTAL_WORD_PROB)
 
@@ -83,11 +86,12 @@ if __name__ == "__main__":
     predictions = class_preds(document_total_probs).map(lambda x : cat_dict[x[1]]).collect()
     # compare calculated maximum probability class with actual label to report accuracy
 
-
-    # with open(test_res_path, 'w') as writefile:
+    # For outputing the results
+    # with open(output_path, 'w') as writefile:
     #     writefile.write('\n'.join(res))
     #
     #
+
     #For comparing results
     with open('/Users/yuanmingshi/downloads/prxis-p1/y_test_small.txt', 'r') as readFile:
         res_label = readFile.read()
