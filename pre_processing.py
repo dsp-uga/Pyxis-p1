@@ -6,11 +6,9 @@ from argparse import ArgumentParser
 from pyspark import SparkContext
 import re
 from nltk.stem.porter import *
-<<<<<<< HEAD
 
-=======
 from nltk.stem.snowball import SnowballStemmer
->>>>>>> origin/tf_idf
+
 
 if __name__ == "__main__":
     sc = SparkContext.getOrCreate()
