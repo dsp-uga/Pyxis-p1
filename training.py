@@ -1,3 +1,9 @@
+####################################################################################
+# Training file for Scalable Document Classification.                              #
+#Some methods are not used in tf-idf models and are only for Baseline Naive Bayes  #
+####################################################################################
+
+
 from operator import add
 import glob
 import os, sys
@@ -62,7 +68,7 @@ def get_total_word_prob(cat1, cat2, cat3, cat4):
     total_word_prob = ccat.union(ecat).union(gcat).union(mcat).reduceByKey(lambda x, y : np.add(x,y)).mapValues(list)  #union all categories together
     e = sorted(total_word_prob.map(lambda x: (x[0], sum(x[1]))).collect(), key=lambda x: x[1])[0][1]
     print (e)
-    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) if i!= 0 else math.log(e ** 0.96) for i in x[1]]))
+    total_word_prob = total_word_prob.map(lambda x: (x[0], [math.log(i) if i!= 0 else math.log(e) for i in x[1]]))
     return total_word_prob
 
 def get_total_vocab(training_text, testing_text):
@@ -79,7 +85,7 @@ def word_count_cat(cat_name, rdd):
     return rdd.filter(lambda x: x[1] == cat_name).map(lambda x: x[0])
 
 if __name__ == '__main__':
-
+    # some of them are not really used in the final model
     # sc = SparkContext.getOrCreate()
     all_label, all_text_label = process_label_text(preprocessed_label, preprocessed_text) #get all lable RDD and all training text with label RDD
     LABEL_COUNT = spark.sparkContext.broadcast(len(all_label.collect()))  #broadcast all label counts
@@ -94,5 +100,3 @@ if __name__ == '__main__':
     mcat = word_count_cat('MCAT', preprocessed_text)
 
     TOTAL_WORD_PROB = get_total_word_prob(ccat, ecat, gcat, mcat)
-
-# get the probabilities for each category
