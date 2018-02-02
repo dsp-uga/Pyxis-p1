@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("-xtest", "--xtest", dest="x_test", help="Give the path for x_test.", required = True)
     parser.add_argument("-st", "--stopwords", dest="stopwords_path", help="Give the path for stopwords.[DEFAULT: \".\"]", default = None)
     parser.add_argument("-l", "--len", dest="min_word_length", help="Specify the minimum length for words.[DEFAULT: 2]", default = 2)
-    parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = "output.txt")
+    parser.add_argument("-o", "--out", dest="output_path", help="Give the path for output.[DEFAULT: \".\"]", default = "./")
     args = parser.parse_args()
 
 
@@ -87,17 +87,17 @@ if __name__ == "__main__":
     # compare calculated maximum probability class with actual label to report accuracy
 
     # For outputing the results
-    # with open(output_path, 'w') as writefile:
-    #     writefile.write('\n'.join(res))
+    with open(output_path, 'w') as writefile:
+        writefile.write('\n'.join(predictions))
     #
     #
 
     #For comparing results
-    with open('/Users/yuanmingshi/downloads/prxis-p1/y_test_small.txt', 'r') as readFile:
-        res_label = readFile.read()
-    res_label = res_label.splitlines()
-    accu = 0
-    for i, v in enumerate(predictions):
-        if v in res_label[i]:
-           accu += 1
-    print (accu/len(res_label))
+    # with open('/Users/yuanmingshi/downloads/prxis-p1/y_test_small.txt', 'r') as readFile:
+    #     res_label = readFile.read()
+    # res_label = res_label.splitlines()
+    # accu = 0
+    # for i, v in enumerate(predictions):
+    #     if v in res_label[i]:
+    #        accu += 1
+    # print (accu/len(res_label))
